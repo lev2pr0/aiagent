@@ -31,11 +31,3 @@ def get_files_info(working_directory, directory=None):
 
         output.append(f"- {item}: file_size={size} bytes, is_dir={is_dir}")
     return "\n".join(output)
-
-#Troubleshooting print statements
-        # print(filepath.strip())
-        # print(f"Length of path string: {len(filepath)}")
-        # print(os.getcwd())
-        # print(f"Length of path string: {len(os.getcwd())}")
-        # print(os.path.exists(filepath))  # True if the path exists
-        # print(os.path.isfile(filepath))  # True if the path exists and is a file
