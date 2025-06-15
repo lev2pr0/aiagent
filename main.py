@@ -33,9 +33,58 @@ def main():
         ),
     )
 
+    schema_get_file_content = types.FunctionDeclaration(
+        name="get_file_content",
+        description="Read file contents, constrained to working directory",
+        parameters=types.Schema(
+            type=types.Type.OBJECT,
+            properties={
+                "file_path": types.Schema(
+                    type=types.Type.STRING,
+                    description="The file path, relative to the working directory. If file path not provided / readable / found / valid file, then return a string with an error.",
+                ),
+            },
+        ),
+    )
+
+    schema_run_python_file = types.FunctionDeclaration(
+        name="run_python_file",
+        description="Execute Python files with optional arguments, constrained to working directory",
+        parameters=types.Schema(
+            type=types.Type.OBJECT,
+            properties={
+                "file_path": types.Schema(
+                    type=types.Type.STRING,
+                    description="The file path, relative to the working directory. If file path not provided / readable / found / valid file, then return a string with an error.",
+                ),
+            },
+        ),
+    )
+
+    schema_write_file = types.FunctionDeclaration(
+        name="write_file",
+        description="Write or overwrite files, constrained to working directory",
+        parameters=types.Schema(
+            type=types.Type.OBJECT,
+            properties={
+                "file_path": types.Schema(
+                    type=types.Type.STRING,
+                    description="The file path, relative to the working directory. If file path not provided / readable / found / valid file, then return a string with an error.",
+                ),
+                "content": types.Schema(
+                    type=types.Type.STRING,
+                    description="The content used to write or overwrite files with.",
+                ),
+            },
+        ),
+    )
+
     available_functions = types.Tool(
         function_declarations=[
             schema_get_files_info,
+            schema_get_file_content,
+            schema_run_python_file,
+            schema_write_file,
         ]
     )
 
@@ -45,6 +94,9 @@ def main():
     When a user asks a question or makes a request, make a function call plan. You can perform the following operations:
 
     - List files and directories
+    - Read file contents
+    - Execute Python files with optional arguments
+    - Write or overwrite files
 
     All paths you provide should be relative to the working directory. You do not need to specify the working directory in your function calls as it is automatically injected for security reasons.
     """
