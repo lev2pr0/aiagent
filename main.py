@@ -111,7 +111,7 @@ def main():
             ),
     )
 
-    myFuncs = {
+    function_dict = {
         "get_file_content": get_file_content,
         "get_files_info": get_files_info,
         "write_file": write_file,
@@ -119,16 +119,10 @@ def main():
         }
 
     def call_function(function_call_part, verbose=False):
-        function_call_part = response.function_calls[0]
         function_call_part.args["working_directory"] = "./calculator"
-        function_result = myFuncs[function_call_part.name](**function_call_part.args)
+        function_call_result = function_dict[function_call_part.name](**function_call_part.args)
 
-        if verbose:
-            print(f"Calling function: {function_call_part.name}({function_call_part.args})")
-        else:
-            print(f"Calling function: {function_call_part.name}")
-
-        if function_call_part.name not in myFuncs:
+        if function_call_part.name not in function_dict:
             return types.Content(
                 role="tool",
                 parts=[
@@ -138,18 +132,23 @@ def main():
                     )
                 ],
             )
+
+        if verbose:
+            print(f"Calling function: {function_call_part.name}({function_call_part.args})")
+        else:
+            print(f"Calling function: {function_call_part.name}")
         return types.Content(
             role="tool",
             parts=[
                 types.Part.from_function_response(
                     name=function_call_part.name,
-                    response={"result": function_result},
+                    response={"result": function_call_result},
                 )
             ],
         )
 
     # Call call_function and set vebose to True/False; Else print response.text
-    function_call_result = None # Initialize before the if/else
+    function_call_part = response.function_calls[0] # Initialize before the if/else
     if "--verbose" in arguments_list:
         function_call_result = call_function(function_call_part, verbose=True)
     else:
@@ -162,8 +161,7 @@ def main():
 
     # Check for --verbose to add prompt and token counts
     if len(sys.argv) > 2:
-        for argument in arguments_list:
-            if argument == "--verbose":
-                print(f"User prompt: {prompt}\nPrompt tokens: {response.usage_metadata.prompt_token_count}\nResponse tokens: {response.usage_metadata.candidates_token_count}")
+        if "--verbose" in arguments_list:
+            print(f"User prompt: {prompt}\nPrompt tokens: {response.usage_metadata.prompt_token_count}\nResponse tokens: {response.usage_metadata.candidates_token_count}")
 
 main()
