@@ -22,15 +22,9 @@ def run_python_file(working_directory, file_path):
             check=True
         )
 
-        if result.returncode == 0:
-            return "STDOUT: Ran"
-        else:
-            return f"STDERR: {result.returncode}"
+        return f"STDOUT: {result.stdout.decode()}\nSTDERR: {result.stderr.decode()}"
 
-        if result.CalledProcessError == True:
-            return f"Process exited with code {result.returncode}"
-        if result.returncode == None:
-            return "No output produced."
-
+    except subprocess.CalledProcessError as e:
+        return f"Process exited with code {e.returncode}. STDERR: {e.stderr.decode()}"
     except Exception as e:
         return f"Error: executing Python file: {e}"

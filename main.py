@@ -1,9 +1,10 @@
 import os
 import sys
+from functions import file_content, files_info, write, run_python
 from dotenv import load_dotenv
 from google.genai import types
 from google import genai
-from functions import get_files_info, write_file, run_python_file, get_file_content
+
 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -112,15 +113,15 @@ def main():
     )
 
     function_dict = {
-        "get_file_content": get_file_content,
-        "get_files_info": get_files_info,
-        "write_file": write_file,
-        "run_python_file": run_python_file,
+        "get_file_content": file_content.get_file_content,
+        "get_files_info": files_info.get_files_info,
+        "write_file": write.write_file,
+        "run_python_file": run_python.run_python_file,
         }
 
     def call_function(function_call_part, verbose=False):
         function_call_part.args["working_directory"] = "./calculator"
-        function_call_result = function_dict[function_call_part.name](**function_call_part.args)
+        result = function_dict[function_call_part.name](**function_call_part.args)
 
         if function_call_part.name not in function_dict:
             return types.Content(
@@ -142,7 +143,7 @@ def main():
             parts=[
                 types.Part.from_function_response(
                     name=function_call_part.name,
-                    response={"result": function_call_result},
+                    response={"result": result},
                 )
             ],
         )
