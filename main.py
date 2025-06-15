@@ -3,6 +3,7 @@ import sys
 from dotenv import load_dotenv
 from google.genai import types
 from google import genai
+from functions import get_files_info, write_file, run_python_file, get_file_content
 
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -110,13 +111,56 @@ def main():
             ),
     )
 
+    myFuncs = {
+        "get_file_content": get_file_content,
+        "get_files_info": get_files_info,
+        "write_file": write_file,
+        "run_python_file": run_python_file,
+        }
 
-    if response.function_calls:
+    def call_function(function_call_part, verbose=False):
         function_call_part = response.function_calls[0]
-        print(f"Calling function: {function_call_part.name}({function_call_part.args})")
+        function_call_part.args["working_directory"] = "./calculator"
+        function_result = myFuncs[function_call_part.name](**function_call_part.args)
+
+        if verbose:
+            print(f"Calling function: {function_call_part.name}({function_call_part.args})")
+        else:
+            print(f"Calling function: {function_call_part.name}")
+
+        if function_call_part.name not in myFuncs:
+            return types.Content(
+                role="tool",
+                parts=[
+                    types.Part.from_function_response(
+                        name=function_call_part.name,
+                        response={"error": f"Unknown function: {function_call_part.name}"},
+                    )
+                ],
+            )
+        return types.Content(
+            role="tool",
+            parts=[
+                types.Part.from_function_response(
+                    name=function_call_part.name,
+                    response={"result": function_result},
+                )
+            ],
+        )
+
+    # Call call_function and set vebose to True/False; Else print response.text
+    function_call_result = None # Initialize before the if/else
+    if "--verbose" in arguments_list:
+        function_call_result = call_function(function_call_part, verbose=True)
+    else:
+        function_call_result = call_function(function_call_part, verbose=False)
+
+    if "--verbose" in arguments_list:
+        print(f"-> {function_call_result.parts[0].function_response.response}")
     else:
         print(response.text)
 
+    # Check for --verbose to add prompt and token counts
     if len(sys.argv) > 2:
         for argument in arguments_list:
             if argument == "--verbose":
